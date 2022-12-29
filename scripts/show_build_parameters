@@ -1,0 +1,29 @@
+#!/bin/bash
+
+echo ""
+echo "Stack Build"
+echo ""
+echo "  stack:"
+echo "    name:         ${STACK_NAME?}"
+echo "    version:      ${STACK_VERSION?}"
+echo "    source-code:  ${TF_SOURCE_CODE_DIRECTORY?}"
+echo ""
+echo "  terraform:"
+echo "    version:      ${TERRAFORM_VERSION?}"
+echo "    provider:     ${TERRAFORM_PROVIDER?}"
+echo "    backend:      ${TERRAFORM_BACKEND?}"
+echo "    providers:"
+while read PROVIDER_NAME; do
+  echo "      - ${PROVIDER_NAME}" 
+done <<< "${TERRAFORM_PROVIDER_LIST}"
+
+  echo ""
+  echo "  build-context:"
+  echo "    source:"
+  echo "      root:       ${TF_PACKAGER_ROOT_DIRECTORY}"
+  echo "      templates:  ${TF_PACKAGER_TEMPLATES_DIRECTORY}"
+  echo "    target:"
+  echo "      root:       ${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY}"
+  echo ""
+
+

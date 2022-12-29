@@ -1,0 +1,7 @@
+Host *
+    User git
+    HostkeyAlgorithms +ssh-rsa
+    StrictHostKeyChecking no
+
+
+    

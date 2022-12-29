@@ -1,0 +1,65 @@
+#!/bin/bash
+# DEBUG Levels
+#   0 - No messages
+#   1 - Only Parameters
+#   2 - Parameters and Image Builder Outputs
+
+
+TF_PACKAGER_DEBUG_LEVEL="${DEBUG-2}"
+
+
+THIS_SCRIPT="${0}"
+
+echo "Esse script: ${THIS_SCRIPT}"
+
+TF_PROJECT_DIRECTORY="${1}"
+TF_SOURCE_CODE_DIRECTORY="${TF_PROJECT_DIRECTORY?}/src"
+
+# test
+TF_TEST_DIRECTORY="${TF_PROJECT_DIRECTORY?}/test"
+
+TF_PACKAGER_SCRIPTS_DIRECTORY="$(dirname "${THIS_SCRIPT}")"
+TF_PACKAGER_ROOT_DIRECTORY="${TF_PACKAGER_SCRIPTS_DIRECTORY}/.."
+
+#exports
+export TF_PROJECT_DIRECTORY
+export TF_SOURCE_CODE_DIRECTORY
+export TF_PACKAGER_ROOT_DIRECTORY
+export TF_PACKAGER_SCRIPTS_DIRECTORY
+export TF_TEST_DIRECTORY
+export PATH="${TF_PACKAGER_SCRIPTS_DIRECTORY}:${PATH}"
+
+
+if [ -z "${TF_PROJECT_DIRECTORY}" ]; then
+  echo ""
+  echo "Stack Project Root Folder needs to be informed."
+  echo ""
+  echo "  Usage:"
+  echo ""
+  echo "    scripts/stackbuild examples/google-bucket"
+  echo ""
+  exit 1
+fi
+
+# echo ""
+# echo "THIS_SCRIPT: ${THIS_SCRIPT} "
+# echo ""
+# echo "  Usage:"
+# echo ""
+# echo "    scripts/stackbuild examples/google-bucket"
+# echo ""
+
+
+
+#scripts
+. build_setup_variables "${THIS_SCRIPT}"
+
+validate_source_code "${TF_SOURCE_CODE_DIRECTORY}"
+
+set -euo pipefail
+
+show_build_parameters
+
+create_build_context
+
+build_container_image 

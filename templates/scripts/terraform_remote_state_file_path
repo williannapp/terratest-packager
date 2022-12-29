@@ -1,0 +1,2 @@
+#!/bin/sh
+echo "${STACK_INSTANCE_NAME-default}.state.json"

@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# cd scripts
+
+# . stackbuild /home/williannap/Documents/repos/azure-maps-stack
+
+
+docker run azure-maps-stack:0.0.1

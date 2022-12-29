@@ -1,0 +1,40 @@
+#!/bin/sh
+if [ "${DEBUG-0}" -gt 0 ]; then
+  echo ""
+  echo "Stack Parameters"
+  echo ""
+  echo "  stack:"
+  echo "    name:                   ${STACK_NAME}"
+  echo "    version:                ${STACK_VERSION}"
+  echo "    instance-name:          ${STACK_INSTANCE_NAME}"
+  echo ""
+  echo "  terraform:"
+  echo "    version:                ${TERRAFORM_VERSION}"
+  echo "    lock-timeout:           ${LOCK_TIMEOUT_SECONDS}"
+  echo "    state-file:             ${TERRAFORM_REMOTE_STATE_FILE_PATH}"
+
+  if [ "${DEBUG-0}" -gt 1 ]; then
+    echo "  provider:"
+    echo "    ${TERRAFORM_PROVIDER}:"
+    /opt/templates/provider/"${TERRAFORM_PROVIDER}"/debug
+
+    echo "  backend:"
+    echo "    ${TERRAFORM_BACKEND}:"
+    /opt/templates/backend/"${TERRAFORM_BACKEND}"/debug
+
+    echo ""
+    echo "Terraform Initialization"
+    echo ""
+    echo "  provider.tf: |"
+    awk '{ print "    " $0 }' < "/opt/src/provider.tf"
+
+    echo ""
+    echo "  backend.conf: |"
+    awk \
+      -e '  /access_key/ {$2=substr($3,2,5); print "    " $1 " = \"" $2 "...\"" }' \
+      -e '! /access_key/                   { print "    " $0 }' \
+      "/opt/src/backend.conf"
+  fi
+
+  echo ""
+fi

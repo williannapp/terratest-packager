@@ -1,0 +1,18 @@
+#!/bin/bash
+source "${TF_PACKAGER_ENVIRONMENT_VARIABLES_FILE_NAME?}"
+
+
+docker build \
+  --rm \
+  --tag "${STACK_NAME?}:latest" \
+  --tag "${STACK_NAME?}-terratest-2:${STACK_VERSION}" \
+  "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}" 
+
+  
+CODE_EXIT="$?"
+
+if [  "${CODE_EXIT-0}" != "0" ]; then
+  exit "${CODE_EXIT}"
+fi
+
+docker system prune -f &> /dev/null

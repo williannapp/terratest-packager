@@ -1,0 +1,84 @@
+#!/bin/bash
+
+while read -r LINE; do
+  rm -rf "${LINE?}"
+done <<< "$(find "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}" -mindepth 1 -not -path '*plugin_cache_dir*')"
+
+
+# Create Context Build Directories
+mkdir -p "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}/templates"
+
+# Copy Terraform Source Code to Build Context src/ directory
+cp -RL "${TF_SOURCE_CODE_DIRECTORY?}" "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}/src"
+
+# test
+cp -RL "${TF_TEST_DIRECTORY}" "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}/test"
+
+# Copy Credentials to Download Remote Modules on Private Git Repository during the build ??????
+cp -R "${HOME}/.ssh" "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}/.ssh"
+
+# Copy SSH Config File with Strict Host Checking Disabled
+cp "${TF_PACKAGER_TEMPLATES_DIRECTORY}/ssh_config" "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}/.ssh/config"
+
+# Copy Scripts to add into Container Image
+cp -R "${TF_PACKAGER_SCRIPTS_DIRECTORY_BUILD}" "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}/scripts"
+
+# Copy Provider Templates
+cp -R "${TF_PACKAGER_TEMPLATES_DIRECTORY}/provider" "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}/templates/provider"
+
+# Copy Backend Templates
+cp -R "${TF_PACKAGER_TEMPLATES_DIRECTORY}/backend" "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}/templates/backend"
+
+
+# Stack Extensions to Override the Default Behavior
+STACK_EXTENSIONS_ROOT_DIRECTORY="${TF_SOURCE_CODE_DIRECTORY}/stack"
+STACK_EXTENSIONS_SCRIPTS_DIRECTORY="${STACK_EXTENSIONS_ROOT_DIRECTORY}/scripts"
+STACK_EXTENSION_REMOTE_STATE_SCRIPT="${STACK_EXTENSIONS_SCRIPTS_DIRECTORY}/terraform_remote_state_file_path"
+
+echo "Remote state script: ${STACK_EXTENSION_REMOTE_STATE_SCRIPT}"
+
+
+if [ -e "${STACK_EXTENSION_REMOTE_STATE_SCRIPT}" ]; then
+  echo "Stack Extension Scripts Detected"
+  echo ""
+  echo "  template:"
+  echo "    source:                 ${STACK_EXTENSION_REMOTE_STATE_SCRIPT}"
+  echo "    target:                 ${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY}/scripts/"
+  echo ""
+
+  cp "${STACK_EXTENSION_REMOTE_STATE_SCRIPT}" "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}/scripts/"
+fi
+
+
+echo "providers list: ${TERRAFORM_PROVIDER_LIST}"
+
+
+# Template: Provider Credentials
+while read TERRAFORM_PROVIDER_NAME; do
+  TERRAFORM_PROVIDER_TEMPLATE_CREDENTIALS_FILE="${TF_PACKAGER_TEMPLATES_DIRECTORY}/provider/${TERRAFORM_PROVIDER_NAME}/credentials_build.conf"
+  envsubst < "${TERRAFORM_PROVIDER_TEMPLATE_CREDENTIALS_FILE}" >> "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}/credentials_provider.conf"
+done <<< "${TERRAFORM_PROVIDER_LIST}"
+
+
+# Template: Backed Credentials
+envsubst < "${TERRAFORM_BACKEND_TEMPLATE_CREDENTIALS_FILE}" > "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}/credentials_backend.conf"
+
+# Template: Dockerfile
+envsubst < "${TF_PACKAGER_TEMPLATES_DIRECTORY}/Dockerfile" > "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}/Dockerfile"
+
+# Template: environment_variables.conf
+
+echo "AQUIII ${TF_PACKAGER_ENVIRONMENT_VARIABLES_FILE_NAME}"
+echo "AQUIII ${TF_PACKAGER_ENVIRONMENT_VARIABLES_FILE_NAME_TEMPLATE}"
+
+
+echo "haaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+cat ${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}/credentials_provider.conf
+
+
+
+envsubst < "${TF_PACKAGER_ENVIRONMENT_VARIABLES_FILE_NAME_TEMPLATE}" > "${TF_PACKAGER_ENVIRONMENT_VARIABLES_FILE_NAME}"
+
+# Template: manifest.yaml
+envsubst < "${TF_PACKAGER_TEMPLATES_DIRECTORY}/manifest.yaml" > "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}/src/manifest.yaml"
