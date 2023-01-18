@@ -2,10 +2,9 @@
 
 export PATH=/opt/scripts/:${PATH}
 
-
 initialization() {
-  PROVIDER_CREDENTIALS_FILE="credentials_provider.conf"
-  BACKEND_CREDENTIALS_FILE="credentials_backend.conf"
+  PROVIDER_CREDENTIALS_FILE="/opt/terraform/credentials_provider.conf"
+  BACKEND_CREDENTIALS_FILE="/opt/terraform/credentials_backend.conf"
 
   if [ -e "${PROVIDER_CREDENTIALS_FILE}" ]; then
     # shellcheck disable=SC2039
@@ -44,10 +43,29 @@ initialization() {
 
 initialization
 
-cd ..
-cd test
-# go mod init test > /dev/null
-# go mod tidy > /dev/null
-cd integration
-go test
 
+LIST_FOLDERS=$(ls -d */ | cut -f1 -d'/')
+
+if [[ -z "${LIST_FOLDERS}" ]]; then
+  echo "Folders with termination _test dind't found: ${SOURCE_CODE_DIRECTORY}"
+  exit 1
+fi 
+
+cd result
+
+echo ${LIST_FOLDERS}
+
+while read FOLDER_TEST_NAME; do
+  if [[ "${FOLDER_TEST_NAME}" == *_test ]]
+  then
+    array+=(${FOLDER_TEST_NAME})
+    go test -v ../${FOLDER_TEST_NAME}/ | tee ${FOLDER_TEST_NAME}.log 
+    terratest_log_parser -testlog ${FOLDER_TEST_NAME}.log -outputdir ${FOLDER_TEST_NAME}_result
+  fi
+done <<< "${LIST_FOLDERS}"
+
+
+if [ -z "${array}" ]; then
+    echo "Not found folders with termination '_test'"
+    exit 1
+fi

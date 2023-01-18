@@ -24,12 +24,11 @@ ARG cert_location=/usr/local/share/ca-certificates
 RUN openssl s_client -showcerts -connect github.com:443 </dev/null 2>/dev/null|openssl x509 -outform PEM > ${cert_location}/github.crt
 RUN update-ca-certificates
 
-RUN curl -OLs https://github.com/gruntwork-io/terratest/releases/download/${TERRATEST_VERSION}/terratest_log_parser_linux_amd64 && \
+RUN curl -OLs https://github.com/gruntwork-io/terratest/releases/download/v0.17.5/terratest_log_parser_linux_amd64 && \
   chmod +x terratest_log_parser_linux_amd64 && \
   mv terratest_log_parser_linux_amd64 /usr/local/bin/terratest_log_parser
 
 
-# estou desistindo
 FROM hashicorp/terraform:${TERRAFORM_VERSION} AS terraform_base_image
 RUN apk add --no-cache bash
 ENV LOCK_TIMEOUT_SECONDS=300
@@ -37,7 +36,6 @@ ENV STACK_INSTANCE_NAME_FINAL=""
 ENV STACK_INSTANCE_NAME="${STACK_INSTANCE_NAME}"
 ENV TERRAFORM_PROVIDER="${TERRAFORM_PROVIDER}"
 ENV TERRAFORM_BACKEND="${TERRAFORM_BACKEND}"
-ENV DEBUG="${TF_PACKAGER_DEBUG_LEVEL}"
 RUN mkdir -p /opt/output/
 
 
@@ -50,10 +48,6 @@ ADD  templates/                            /opt/templates
 ADD  scripts/                              /opt/scripts
 ADD  src/                                  /opt/src
 ADD  test/                                 /opt/test
-# WORKDIR /opt/src
-# RUN chmod 600 /root/.ssh/config && \
-#     /opt/scripts/terraform_init
-
 
 FROM golang:1.19 as final
 LABEL maintainer="Cloud Ops Integration"
@@ -69,11 +63,10 @@ COPY --from=package /opt/src                        /opt/src
 COPY --from=package /root/.ssh/                     /root/.ssh/
 COPY --from=package /opt/terraform                  /opt/terraform
 COPY --from=package /opt/test                       /opt/test
-
+RUN   mkdir -p /opt/test/result
 
 RUN chmod 600 /root/.ssh/config
 
-WORKDIR /opt/terraform
-
+WORKDIR /opt/test
 
 ENTRYPOINT [ "/opt/scripts/entrypoint.sh" ]

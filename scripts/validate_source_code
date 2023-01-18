@@ -1,5 +1,6 @@
 #!/bin/bash
 SOURCE_CODE_DIRECTORY="${1}"
+TF_PROJECT_DIRECTORY="${2}"
 
 if [ ! -e "${SOURCE_CODE_DIRECTORY}" ]; then
   echo "Source Code Directory doesn't exists: ${SOURCE_CODE_DIRECTORY}"
