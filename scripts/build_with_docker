@@ -5,10 +5,6 @@ STACK-NAME=cloudamqp-rabbitmq-server-stack
 
 IMAGE_NAME=${STACK_NAME?}-terratest
 
-
-echo ${IMAGE_NAME}
-
-
 mkdir test_result
 
 PATH_TEST_FOLDER=$(pwd /test_result)
@@ -18,8 +14,6 @@ docker build \
   --tag "${STACK_NAME?}:latest" \
   --tag "${IMAGE_NAME?}" \
   "${TF_PACKAGER_TEMPORARY_BUILD_CONTEXT_DIRECTORY?}" 
-
-echo ${PATH_TEST_FOLDER}
 
 docker run \
     -v ${PATH_TEST_FOLDER}/test_result:/opt/test/result ${IMAGE_NAME}:latest
