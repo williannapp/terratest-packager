@@ -1,8 +1,6 @@
 #!/bin/bash
 source "${TF_PACKAGER_ENVIRONMENT_VARIABLES_FILE_NAME?}"
 
-STACK-NAME=cloudamqp-rabbitmq-server-stack
-
 IMAGE_NAME=${STACK_NAME?}-terratest
 
 mkdir test_result
