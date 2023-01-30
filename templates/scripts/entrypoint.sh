@@ -61,7 +61,7 @@ while read FOLDER_TEST_NAME; do
     array+=(${FOLDER_TEST_NAME})
     go test -v ../${FOLDER_TEST_NAME}/ | tee ${FOLDER_TEST_NAME}.log 
     terratest_log_parser -testlog ${FOLDER_TEST_NAME}.log -outputdir ${FOLDER_TEST_NAME}_result
-    mv ${FOLDER_TEST_NAME}_result/report.xml ${FOLDER_TEST_NAME}.xml 
+    mv ${FOLDER_TEST_NAME}_result/report.xml test_${FOLDER_TEST_NAME}.xml 
   fi
 done <<< "${LIST_FOLDERS}"
 
