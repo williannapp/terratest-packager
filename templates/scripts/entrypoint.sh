@@ -51,6 +51,11 @@ if [[ -z "${LIST_FOLDERS}" ]]; then
   exit 1
 fi 
 
+# if [[ -z $(find . -name "go.mod")] || [-z $(find . -name "go.sum") ]]; then
+#   go mod init test
+#   go mod tidy
+# fi
+
 cd result
 
 echo ${LIST_FOLDERS}
@@ -58,10 +63,6 @@ echo ${LIST_FOLDERS}
 while read FOLDER_TEST_NAME; do
   if [[ "${FOLDER_TEST_NAME}" == *_test ]]
   then
-    if [[ -z $(find . -name "go.mod") || -z $(find . -name "go.sum") ]]; then
-      go mod init test
-      go mod tidy
-    fi
     array+=(${FOLDER_TEST_NAME})
     go test -v ../${FOLDER_TEST_NAME}/ | tee ${FOLDER_TEST_NAME}.log 
     terratest_log_parser -testlog ${FOLDER_TEST_NAME}.log -outputdir ${FOLDER_TEST_NAME}_result
