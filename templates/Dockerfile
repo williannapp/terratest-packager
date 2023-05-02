@@ -49,7 +49,7 @@ ADD  scripts/                              /opt/scripts
 ADD  src/                                  /opt/src
 ADD  test/                                 /opt/test
 
-FROM golang:1.19 as final
+FROM golang:1.17 as final
 LABEL maintainer="Cloud Ops Integration"
 
 COPY --from=terraform-cli /workspace/terraform /usr/local/bin/terraform
