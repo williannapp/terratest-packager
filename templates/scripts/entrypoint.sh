@@ -51,6 +51,11 @@ if [[ -z "${LIST_FOLDERS}" ]]; then
   exit 1
 fi 
 
+if [[ -z $(find . -name "go.mod") ||  -z $(find . -name "go.sum") ]]; then
+  go mod init test
+  go mod tidy
+fi
+
 cd result
 
 echo ${LIST_FOLDERS}
